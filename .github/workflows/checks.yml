@@ -1,0 +1,50 @@
+name: Run Unittest
+
+on:
+  workflow_run:
+    workflows: ["Lint Test"]
+    types:
+      - completed
+
+jobs:
+  unittest:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: 'feature/*'
+
+      - name: Build image
+        run: docker compose build
+
+      - name: Unit Test
+        run: docker compose -f docker-compose.yml run --rm app sh -c "python manage.py test"
+
+  # sonarcloud:
+  #     name: SonarCloud
+  #     runs-on: ubuntu-latest
+  #     steps:
+  #       - uses: actions/checkout@v4
+  #         with:
+  #           fetch-depth: 0
+  #           ref: dev
+  #       - name: SonarCloud Scan
+  #         uses: SonarSource/sonarcloud-github-action@master
+  #         env:
+  #           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  merge-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+
+      - name: Merge dev -> feature
+        uses: devmasx/merge-branch@master
+        with:
+          type: now
+          target_branch: 'feature/*'
+          message: Merge dev into feature
+          github_token: ${{ secrets.GITHUB_TOKEN }}

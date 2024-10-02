@@ -1,0 +1,21 @@
+networks:
+  local-network:
+    driver: bridge
+
+services:
+  app:
+    image: django-app
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      DJANGO_APP: run.py
+      DJANGO_DEBUG: 1
+    volumes:
+      - ./app:/app
+    networks:
+      - local-network
+    command: >
+      sh -c "python manage.py runserver 0.0.0.0:8000"
